@@ -3,64 +3,78 @@ const form = document.getElementById('form');
 const input = document.getElementById('input');
 const list = document.getElementById('list');
 
-//Crear el elemento a renderizar en caso que el ID sea entre 1 y 7
-const createTask = task =>
-`
+// x es el valor que pasa el usuario
+const Pedirpoke = async (x) =>{
+    const url = `https://pokeapi.co/api/v2/pokemon/${x}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    return data;
+}
+// Divide un número por 10.
+const div10 = (x) =>{
+    res = x / 10
+    return res;
+}
+//Agarra un string y lo devuelve pero con la primera letra en mayúsculas.
+function mayus(word) {
+    return word[0].toUpperCase() + word.slice(1);
+  }
+
+
+//Crear el elemento a renderizar
+const createTask = task =>{
+    const {name, height, weight, types, sprites,} = task; 
+return `
  <li class="card">
-    <h2>${task.name}</h2>
-    <img ${task.img} alt="Foto de ${task.name}">
-    <h3>${task.type}</h3>
+    <h2>${name.toUpperCase()}</h2>
+    <img src= "${sprites.other.home.front_default}" alt="Foto de ${task.name}">
+    <div class="pesoYalt">
+            ${types
+                .map( tipo => {
+                  return ` <h3 class="${mayus(tipo.type.name)} poke__type">
+                          ${mayus(tipo.type.name)} </h3>`;
+                }).join('')
+              }
+        </div>
     <div class="pesoYalt"> 
-        <h3>Peso: ${task.peso}kg</h3>
-        <h3>Altura: ${task.altura}m</h3>
+        <h3>Peso: ${div10(weight)}kg</h3>
+        <h3>Altura: ${div10(height)}m</h3>
     </div>
 
  </li>
-`;
-//Crear el elemento a renderizar en caso que el ID no este entre 1 y 7
-const wrongId = (poke) =>
-`
-    <li class="card red">
-        <h2>El Id ${poke.id} no coincide con ningun Pokemon</h2>
-    </li>
-`;
-//Crear el elemento a renderizar en caso que el usuario no escriba un numero
-const noNumber = () =>
-    `
-    <li class="card red">
-        <h2>Ingrese un numero por favor</h2>
-    </li>
-`;
+`};
 
-// Funcion que decide si el objeto dado, pertenece a uno de los de la lista o no
-const decider = (pizza) =>{
-   /*  console.log(pizza); */
-    if (pizza.id == 0){
-        return noNumber ();
+// Renderiza la tarea
+const renderTask = (poke) => {
+    list.innerHTML = createTask(poke);
+};
+
+
+const buscapoke = async (e) =>{
+    e.preventDefault();
+    const task = input.value.trim();
+    input.value = '';
+
+    //ESTO LO QUISE PONER EN UNA FUNCION APARTE PERO NO PUDE POR EL AWAIT.
+    //Decide si el usuario no da nigun numero, si da uno que no esta entre los pokemones o si crea la card correctamente
+
+    if (task == 0){
+        return alert(`Ingrese un número por favor.`);
     }
-    else if (pizza.id < 0 || pizza.id > 7){ //EN VEZ DE ENTRE 0 Y 7, ENTRE 0 Y LOS POKEMONES QUE HAY
-        return wrongId (pizza);
+    else if (task < 0 || task > 903){
+        return alert(`El número ${task} no pertenece a ningun pokemon.`);
     }
     else{
-        return createTask (pizza);
+        // sacamos el pokemon
+        fetchedPoke = await Pedirpoke (task);
+        //renderizamos
+        return renderTask(fetchedPoke);
     }
-};
 
-// Renderizar la o las tareas y corre la funcion que decide a que grupo pertenece el ID
-renderTask = TodoList => {
-    list.innerHTML = TodoList.map(pizza => decider(pizza));
-};
-
+}
 
 const init = () => {
-    form.addEventListener('submit', e =>{
-        e.preventDefault();
-        const task = input.value.trim();
-        input.value = '';
-        //Detectamos si el numero que puso el usuario es pertenece a un ID ya creado, sino creamos uno
-        nuevoObjeto (task);
-        renderTask(thisPizza); //RENDERIZAR DIRECTAMNTE EL OBJETO DEL POKEMON
-    })
+    form.addEventListener('submit', buscapoke)
 }
 init();
 
